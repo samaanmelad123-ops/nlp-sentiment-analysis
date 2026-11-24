@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large binary/numpy files (too large for GitHub)
+*.npy
+X_train.npy
+X_test.npy
+X_embeddings.npy
+y_train.npy
+y_test.npy
+y_labels.npy
+
+# Trained model weights
+*.pth
+*.pt
+
+# Dataset (if large)
+cleand date.csv

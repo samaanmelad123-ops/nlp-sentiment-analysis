@@ -1,0 +1,68 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import TensorDataset, DataLoader
+
+# Load data
+base_path = r'C:\Users\hello\OneDrive\Desktop\nlp'
+X_train = np.load(f'{base_path}\\X_train.npy').astype(np.float32)
+y_train = np.load(f'{base_path}\\y_train.npy').astype(np.float32)
+X_test = np.load(f'{base_path}\\X_test.npy').astype(np.float32)
+y_test = np.load(f'{base_path}\\y_test.npy').astype(np.float32)
+
+# Convert to tensors
+train_dataset = TensorDataset(torch.tensor(X_train), torch.tensor(y_train).unsqueeze(1))
+test_dataset = TensorDataset(torch.tensor(X_test), torch.tensor(y_test).unsqueeze(1))
+
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+
+# Model Architecture (Task 3)
+class FFNN(nn.Module):
+    def __init__(self, input_dim):
+        super(FFNN, self).__init__()
+        self.fc1 = nn.Linear(input_dim, 128)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(128, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        out = self.fc1(x)
+        out = self.relu(out)
+        out = self.fc2(out)
+        out = self.sigmoid(out)
+        return out
+
+model = FFNN(input_dim=X_train.shape[1])
+
+# Training Loop (Task 4)
+criterion = nn.BCELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+epochs = 10
+for epoch in range(epochs):
+    model.train()
+    epoch_loss = 0
+    for X_batch, y_batch in train_loader:
+        optimizer.zero_grad()
+        predictions = model(X_batch)
+        loss = criterion(predictions, y_batch)
+        loss.backward()
+        optimizer.step()
+        epoch_loss += loss.item()
+    print(f"Epoch {epoch+1}/{epochs}, Loss: {epoch_loss/len(train_loader):.4f}")
+
+# Evaluation (Task 5)
+model.eval()
+correct = 0
+total = 0
+with torch.no_grad():
+    for X_batch, y_batch in test_loader:
+        predictions = model(X_batch)
+        predicted_classes = (predictions >= 0.5).float()
+        correct += (predicted_classes == y_batch).sum().item()
+        total += y_batch.size(0)
+
+accuracy = correct / total
+print(f"Test Accuracy: {accuracy * 100:.2f}%")
